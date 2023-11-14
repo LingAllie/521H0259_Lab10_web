@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+        integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+        crossorigin="anonymous"></script>
     <title>Danh sách người dùng</title>
     <style>
         * {
@@ -17,7 +20,7 @@
         .user {
             display: flex;
             align-items: center;
-            padding: 12 px 24px;
+            padding: 12px 24px;
             cursor: pointer;
         }
 
@@ -76,48 +79,18 @@
             font-weight: 450;
             transition: 0.3s;
         }
-
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-7">
                 <div class="rounded border mt-5 mb-3">
                     <h4 class="text-primary text-center my-5">Danh sách người dùng trực tuyến</h4>
-                    <p style="padding: 0 24px;">Số người online: <strong class="badge badge-danger">3</strong> </p>
-                    <div class="people">
-                        <div class="user">
-                            <div class="avatar">C</div>
-                            <div class="user-info">
-                                <div class="user-name">Phạm Công Chánh</div>
-                                <div class="online">Truy cập lúc: 16:45</div>
-                            </div>
-                            <div class="status">
-                                <div class="badge badge-success badge-pill">Đang rảnh</div>
-                            </div>
-                        </div>
-
-                        <div class="user">
-                            <div class="avatar">K</div>
-                            <div class="user-info">
-                                <div class="user-name">Trần Vũ Khoa</div>
-                                <div class="online">Truy cập lúc: 16:45</div>
-                            </div>
-                            <div class="status">
-                                <div class="badge badge-success badge-pill">Đang rảnh</div>
-                            </div>
-                        </div>
-
-                        <div class="user">
-                            <div class="avatar">D</div>
-                            <div class="user-info">
-                                <div class="user-name">Vũ Đình Duy</div>
-                                <div class="online">Truy cập lúc: 16:45</div>
-                            </div>
-                            <div class="status">
-                                <div class="badge badge-success badge-pill">Đang rảnh</div>
-                            </div>
+                    <p style="padding: 0 24px;">Số người online: <strong id="online-count" class="badge badge-danger">3</strong> </p>
+                    <div id="user-list" class="people">
+                        
                         </div>
                     </div>
                 </div>
@@ -125,18 +98,102 @@
         </div>
     </div>
 
-    <div id="online-notification" class="alert alert-success d-inline position-fixed">
+    <div id="online-notification" class="alert alert-success d-inline position-fixed small"
+        style="position: fixed; left: 0;">
         <strong>Trần Quang Trí</strong> vừa mới online
     </div>
 
-    <div id="offline-notification" class="alert alert-danger d-inline position-fixed">
+    <div id="offline-notification" class="alert alert-danger d-inline position-fixed small"
+        style="position: fixed; right: 0px">
         <strong>Trần Quang Trí</strong> đã thoát khỏi ứng dụng
     </div>
 
     <script>
+
+        let socket;
+        let username;
+        let onlineUsers = [];
+
         window.onload = () => {
-            console.log('Open connect to server');
+            socket = io();
+            socket.on('connect', handleConnectionSuccess)
+            socket.on('disconnect', () => console.log("no oke"))
+            socket.on('list-users', handleUserList)
+            socket.on('new-user', handleNewUser)
+            socket.on('user-leave', handleUserLeave)
+            socket.on('register-name', handleRegisteringUsername)
+        }
+
+
+        function handleRegisteringUsername(data) {
+            let {id, username} = data
+            let user = onlineUsers.find(u => u.id == id)
+            if (!user) {
+                return console.log('Cannot find user !');
+            }
+
+            user.username = username
+            console.log(`Client ${id} has regitered name: ${username}`);
+        }
+
+        function handleConnectionSuccess() {
+            console.log('Connect successfully with id ' + socket.id);
+            if (!username) {
+                username = prompt('Enter your name')
+            }
+            socket.emit('register-name', username); //send name to server
+        }
+
+        function handleUserList(users) {
+            console.log("Da nhan danh sach user online tu server")
+            users.forEach(u => {
+                console.log(u);
+                if (u.id !== socket.id) {
+                    onlineUsers.push(u); //add users into list except myself
+                }
+            });
+        }
+
+        function handleNewUser(user) {
+            console.log(`Mot nguoi moi da ket noi. Except you, room has ${onlineUsers.length + 1} user(s) in total`);
+            console.log(user);
+            onlineUsers.push(user); //add new user into list
+        }
+
+        function handleUserLeave(id) {
+            onlineUsers = onlineUsers.filter(u => u.id != id)
+            if (onlineUsers.length > 0) {
+                console.log(`User ${id} has left. Except you, just ${onlineUsers.length} user(s) still online`);
+            } else {
+                console.log(`User ${id} has left, only you in room`);
+            }
+        }
+    
+        function displayUser(user) {
+
+            let status = user.free ? '<div class="badge badge-success badge-pill">Đang rảnh</div>' : '<div class="badge badge-warning badge-pill">Đang bận</div>';
+            let userDiv = $(`
+                        <div id="${user.id}" class="user">
+                            <div class="avatar">${user.username[0]}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.username}</div>
+                                <div class="online">Truy cập lúc: ${user.loginAt}</div>
+                            </div>
+                            <div class="status">
+                                ${status}
+                            </div>
+                        </div> `)
+
+
+            $(`#user-list`).append(userDiv)
+            $('#online-count').html($('#user-list .user').length)
+        }
+    
+        function removeUser(id) {
+            $(`#${id}`).remove();
+            $('#online-count').html($('#user-list .user').length)
         }
     </script>
 </body>
+
 </html>
