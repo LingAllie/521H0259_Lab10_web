@@ -11,6 +11,7 @@
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"
         integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
         crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <title>Danh sách người dùng</title>
     <style>
         * {
@@ -88,14 +89,15 @@
             <div class="col-md-7">
                 <div class="rounded border mt-5 mb-3">
                     <h4 class="text-primary text-center my-5">Danh sách người dùng trực tuyến</h4>
-                    <p style="padding: 0 24px;">Số người online: <strong id="online-count" class="badge badge-danger">3</strong> </p>
+                    <p style="padding: 0 24px;">Số người online: <strong id="online-count"
+                            class="badge badge-danger">3</strong> </p>
                     <div id="user-list" class="people">
-                        
-                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <div id="online-notification" class="alert alert-success d-inline position-fixed small"
@@ -122,7 +124,7 @@
             socket.on('new-user', handleNewUser)
             socket.on('user-leave', handleUserLeave)
             socket.on('register-name', handleRegisteringUsername)
-            
+
 
             //an thong bao khi trang vua load
             $('#online-notification').fadeTo(10, 0)
@@ -131,7 +133,7 @@
 
 
         function handleRegisteringUsername(data) {
-            let {id, username} = data
+            let { id, username } = data
             let user = onlineUsers.find(u => u.id == id)
             if (!user) {
                 return console.log('Cannot find user !');
@@ -187,7 +189,7 @@
             removeUser(id);
             notifyOffline(user.username)
         }
-    
+
         function displayUser(user) {
 
             let status = user.free ? '<div class="badge badge-success badge-pill">Đang rảnh</div>' : '<div class="badge badge-warning badge-pill">Đang bận</div>';
@@ -207,19 +209,19 @@
             $(`#user-list`).append(userDiv)
             $('#online-count').html($('#user-list .user').length)
         }
-    
+
         function removeUser(id) {
             $(`#${id}`).remove();
             $('#online-count').html($('#user-list .user').length)
         }
-    
+
         function notifyOnline(username) {
             $('#online-notification strong').html(username);
             $('#online-notification').fadeTo(2000, 1); // show
             setTimeout(() => {
                 $('#online-notification').fadeTo(2000, 0); // hide
                 $('#online-notification').remove();
-            }, 4000);
+            }, 1000);
         }
 
         function notifyOffline(username) {
@@ -228,10 +230,10 @@
             setTimeout(() => {
                 $('#offline-notification').fadeTo(2000, 0); // hide
                 $('#offline-notification').remove();
-            }, 4000);
+            }, 1000);
         }
-    
-    
+
+
     </script>
 </body>
 
