@@ -90,8 +90,6 @@
                 <div class="rounded border mt-5 mb-3">
                     <h4 class="text-primary text-center my-5">Danh sách người dùng trực tuyến</h4>
                     <p style="padding: 0 24px;">Số người online: <strong id="online-count" class="badge badge-danger">0</strong> </p>
-                    <p style="padding: 0 24px;">Số người online: <strong id="online-count"
-                            class="badge badge-danger">3</strong> </p>
                     <div id="user-list" class="people">
 
                     </div>
@@ -152,8 +150,14 @@
         function handleConnectionSuccess() {
             console.log('Connect successfully with id ' + socket.id);
             setTimeout(() => {
+                username = sessionStorage.getItem('username')
+                if (username) {
+                    console.log("Username has been read from session storage");
+                }
                 if (!username) {
                     username = prompt('Enter your name')
+                    sessionStorage.setItem('username', username)
+                    console.log("Username has been saved in session storage");
                 }
                 socket.emit('register-name', username); //send name to server
                 document.title = 'You are ' + username
