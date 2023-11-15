@@ -115,8 +115,123 @@
         let onlineUsers = [];
 
         window.onload = () => {
-            console.log('Open connect to server');
+            socket = io();
+            socket.on('connect', handleConnectionSuccess)
+            socket.on('disconnect', () => console.log("no oke"))
+            socket.on('list-users', handleUserList)
+            socket.on('new-user', handleNewUser)
+            socket.on('user-leave', handleUserLeave)
+            socket.on('register-name', handleRegisteringUsername)
+            
+
+            //an thong bao khi trang vua load
+            $('#online-notification').fadeTo(10, 0)
+            $('#offline-notification').fadeTo(10, 0)
         }
+
+
+        function handleRegisteringUsername(data) {
+            let {id, username} = data
+            let user = onlineUsers.find(u => u.id == id)
+            if (!user) {
+                return console.log('Cannot find user !');
+            }
+
+            user.username = username
+            console.log(`Client ${id} has regitered name: ${username}`);
+
+            displayUser(user)
+
+            notifyOnline(user.username)
+
+        }
+
+        function handleConnectionSuccess() {
+            console.log('Connect successfully with id ' + socket.id);
+            setTimeout(() => {
+                if (!username) {
+                    username = prompt('Enter your name')
+                }
+                socket.emit('register-name', username); //send name to server
+                document.title = 'You are ' + username
+            }, 500)
+        }
+
+        function handleUserList(users) {
+            console.log("Da nhan danh sach user online tu server")
+            users.forEach(u => {
+                console.log(u);
+                if (u.id !== socket.id) {
+                    onlineUsers.push(u); //add users into list except myself
+                    displayUser(u);
+                }
+            });
+        }
+
+        function handleNewUser(user) {
+            console.log(`Mot nguoi moi da ket noi. Except you, room has ${onlineUsers.length + 1} user(s) in total`);
+            console.log(user);
+            onlineUsers.push(user); //add new user into list
+        }
+
+        function handleUserLeave(id) {
+
+            let user = onlineUsers.find(u => u.id === id)
+
+            onlineUsers = onlineUsers.filter(u => u.id != id)
+            if (onlineUsers.length > 0) {
+                console.log(`User ${id} has left. Except you, just ${onlineUsers.length} user(s) still online`);
+            } else {
+                console.log(`User ${id} has left, only you in room`);
+            }
+            removeUser(id);
+            notifyOffline(user.username)
+        }
+    
+        function displayUser(user) {
+
+            let status = user.free ? '<div class="badge badge-success badge-pill">Đang rảnh</div>' : '<div class="badge badge-warning badge-pill">Đang bận</div>';
+            let userDiv = $(`
+                        <div id="${user.id}" class="user">
+                            <div class="avatar">${user.username[0]}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.username}</div>
+                                <div class="online">Truy cập lúc: ${user.loginAt}</div>
+                            </div>
+                            <div class="status">
+                                ${status}
+                            </div>
+                        </div> `)
+
+
+            $(`#user-list`).append(userDiv)
+            $('#online-count').html($('#user-list .user').length)
+        }
+    
+        function removeUser(id) {
+            $(`#${id}`).remove();
+            $('#online-count').html($('#user-list .user').length)
+        }
+    
+        function notifyOnline(username) {
+            $('#online-notification strong').html(username);
+            $('#online-notification').fadeTo(2000, 1); // show
+            setTimeout(() => {
+                $('#online-notification').fadeTo(2000, 0); // hide
+                $('#online-notification').remove();
+            }, 4000);
+        }
+
+        function notifyOffline(username) {
+            $('#offline-notification strong').html(username);
+            $('#offline-notification').fadeTo(2000, 1); // show
+            setTimeout(() => {
+                $('#offline-notification').fadeTo(2000, 0); // hide
+                $('#offline-notification').remove();
+            }, 4000);
+        }
+    
+    
     </script>
 </body>
 
