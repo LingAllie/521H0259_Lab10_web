@@ -89,9 +89,8 @@
             <div class="col-md-7">
                 <div class="rounded border mt-5 mb-3">
                     <h4 class="text-primary text-center my-5">Danh sách người dùng trực tuyến</h4>
-                    <p style="padding: 0 24px;">Số người online: <strong id="online-count" class="badge badge-danger">0</strong> </p>
                     <p style="padding: 0 24px;">Số người online: <strong id="online-count"
-                            class="badge badge-danger">3</strong> </p>
+                            class="badge badge-danger">0</strong> </p>
                     <div id="user-list" class="people">
 
                     </div>
@@ -222,7 +221,7 @@
             setTimeout(() => {
                 $('#online-notification').fadeTo(2000, 0); // hide
                 $('#online-notification').remove();
-            }, 1000);
+            }, 4000);
         }
 
         function notifyOffline(username) {
@@ -231,7 +230,7 @@
             setTimeout(() => {
                 $('#offline-notification').fadeTo(2000, 0); // hide
                 $('#offline-notification').remove();
-            }, 1000);
+            }, 4000);
         }
 
 
